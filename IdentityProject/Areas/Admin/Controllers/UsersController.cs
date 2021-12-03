@@ -1,5 +1,6 @@
 ﻿using Identity.Bugeto.Models.Entities;
 using IdentityProject.Areas.Admin.Models.ViewModels;
+using IdentityProject.Services;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
@@ -15,11 +16,16 @@ namespace IdentityProject.Areas.Admin.Controllers
     {
         private readonly UserManager<User> _userManager;
         private readonly RoleManager<Role> _roleManager;
+        private readonly EmailServices _emailServices;
 
-        public UsersController(UserManager<User> userManager, RoleManager<Role> roleManager)
+        public UsersController(
+            UserManager<User> userManager,
+            RoleManager<Role> roleManager,
+            EmailServices emailServices)
         {
             _userManager = userManager;
             _roleManager = roleManager;
+            _emailServices = emailServices;
         }
 
         public IActionResult Index()
@@ -62,7 +68,14 @@ namespace IdentityProject.Areas.Admin.Controllers
             var result = await _userManager.CreateAsync(newUser, register.Password);
             if (result.Succeeded)
             {
-                return RedirectToAction("Index", "users", new { area = "admin" });
+                var token = await _userManager.GenerateEmailConfirmationTokenAsync(newUser);
+                string callBackUrl = Url.Action("ConfirmEmail", "Account",
+                    new { UserId = newUser.Id, token = token }, protocol: Request.Scheme);
+
+                string body = $"جهت فعال سازی حساب کاربری <a href='{callBackUrl}'>کلیک نمایید</a>";
+                await _emailServices.Excute(newUser.Email, body, "فعال سازی حساب کاربری");
+
+                return RedirectToAction("DisplayEmail");
             }
 
             string message = "";
@@ -153,7 +166,7 @@ namespace IdentityProject.Areas.Admin.Controllers
             var user = await _userManager.FindByIdAsync(viewModel.Id);
             var result = await _userManager.AddToRoleAsync(user, viewModel.Role);
             if (result.Succeeded)
-            { 
+            {
                 return RedirectToAction("UserRoles", "Users", new { Id = user.Id, area = "Admin" });
             }
             return View(viewModel);

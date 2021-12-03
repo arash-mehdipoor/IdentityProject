@@ -1,5 +1,6 @@
 using Identity.Bugeto.Models.Entities;
 using IdentityProject.Data;
+using IdentityProject.Services;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.HttpsPolicy;
@@ -32,7 +33,7 @@ namespace IdentityProject
             services.AddIdentity<User, Role>()
                 .AddEntityFrameworkStores<DatabaseContext>()
                 .AddDefaultTokenProviders();
-
+            services.AddScoped<EmailServices>();
             services.Configure<IdentityOptions>(option =>
             {
                 option.Password.RequireDigit = false;

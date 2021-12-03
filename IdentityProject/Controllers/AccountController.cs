@@ -100,5 +100,35 @@ namespace IdentityProject.Controllers
             _signInManager.SignOutAsync();
             return RedirectToAction("Index", "Home");
         }
+
+        public IActionResult ConfirmEmail(string UserId, string Token)
+        {
+            if (UserId == null || Token == null)
+            {
+                return BadRequest();
+            }
+            var user = _userManager.FindByIdAsync(UserId).Result;
+            if (user == null)
+            {
+                return View("Error");
+            }
+
+            var result = _userManager.ConfirmEmailAsync(user, Token).Result;
+            if (result.Succeeded)
+            {
+                /// return 
+            }
+            else
+            {
+
+            }
+            return RedirectToAction("login");
+
+        }
+
+        public IActionResult DisplayEmail()
+        {
+            return View();
+        }
     }
 }
