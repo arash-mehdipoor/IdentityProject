@@ -1,6 +1,7 @@
 ﻿using IdentityProject.Models.Entities;
 using IdentityProject.Models.ViewModels;
 using IdentityProject.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using System.Threading.Tasks;
@@ -196,5 +197,67 @@ namespace IdentityProject.Controllers
         {
             return View();
         }
+
+        [HttpGet]
+        [Authorize]
+        public IActionResult SetPhoneNumber()
+        {
+            return View();
+        }
+
+        [HttpPost]
+        [Authorize]
+        public async Task<IActionResult> SetPhoneNumber(SetPhoneNumberViewModel viewModel)
+        {
+            if (ModelState.IsValid)
+            {
+                var user = await _userManager.FindByNameAsync(User.Identity.Name);
+                var result = await _userManager.SetPhoneNumberAsync(user, viewModel.PhoneNumber);
+                string code = await _userManager.GenerateChangePhoneNumberTokenAsync(user, viewModel.PhoneNumber);
+
+                // SMS
+                //SmsService.Send(viewModel.PhoneNumber, code);
+                TempData["PhoneNumber"] = viewModel.PhoneNumber;
+                return RedirectToAction(nameof(VerifyPhoneNumber));
+            }
+            return View(viewModel);
+        }
+
+        [Authorize]
+        public IActionResult VerifyPhoneNumber()
+        {
+
+            return View(new VerifyPhoneNumberViewModel
+            {
+                PhoneNumber = TempData["PhoneNumber"].ToString(),
+            });
+        }
+
+        [Authorize]
+        [HttpPost]
+        public async Task<IActionResult> VerifyPhoneNumber(VerifyPhoneNumberViewModel verify)
+        {
+            var user = await _userManager.FindByNameAsync(User.Identity.Name);
+            bool resultVerify = await _userManager.VerifyChangePhoneNumberTokenAsync(user, verify.Code, verify.PhoneNumber);
+            if (!resultVerify)
+            {
+                ViewData["Message"] = $"کد وارد شده برای شماره {verify.PhoneNumber} اشتباه اشت";
+                return View(verify);
+            }
+            else
+            {
+                user.PhoneNumberConfirmed = true;
+                await _userManager.UpdateAsync(user);
+            }
+            return RedirectToAction("VerifySuccess");
+
+        }
+
+
+        public IActionResult VerifySuccess()
+        {
+            return View();
+        }
+
     }
 }

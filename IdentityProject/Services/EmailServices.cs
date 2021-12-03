@@ -12,6 +12,8 @@ namespace IdentityProject.Services
     {
         public Task Excute(string Email, string Body, string subject)
         {
+            //https://myaccount.google.com/lesssecureapps
+
             SmtpClient client = new SmtpClient();
             client.Port = 587;
             client.Host = "smtp.gmail.com";
