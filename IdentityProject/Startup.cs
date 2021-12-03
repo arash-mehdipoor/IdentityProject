@@ -1,5 +1,6 @@
 using Identity.Bugeto.Models.Entities;
 using IdentityProject.Data;
+using IdentityProject.Models.Entities;
 using IdentityProject.Services;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;

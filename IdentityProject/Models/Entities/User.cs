@@ -4,9 +4,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace Identity.Bugeto.Models.Entities
+namespace IdentityProject.Models.Entities
 {
-    public class User:IdentityUser 
+    public class User : IdentityUser
     {
         public string FirstName { get; set; }
         public string LastName { get; set; }

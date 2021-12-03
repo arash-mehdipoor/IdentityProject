@@ -1,5 +1,6 @@
 ﻿using Identity.Bugeto.Models.Entities;
 using IdentityProject.Areas.Admin.Models.ViewModels;
+using IdentityProject.Models.Entities;
 using IdentityProject.Services;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
@@ -70,7 +71,7 @@ namespace IdentityProject.Areas.Admin.Controllers
             {
                 var token = await _userManager.GenerateEmailConfirmationTokenAsync(newUser);
                 string callBackUrl = Url.Action("ConfirmEmail", "Account",
-                    new { UserId = newUser.Id, token = token }, protocol: Request.Scheme);
+                    new {UserId = newUser.Id, token = token }, protocol: Request.Scheme);
 
                 string body = $"جهت فعال سازی حساب کاربری <a href='{callBackUrl}'>کلیک نمایید</a>";
                 await _emailServices.Excute(newUser.Email, body, "فعال سازی حساب کاربری");

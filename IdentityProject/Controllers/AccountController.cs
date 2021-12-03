@@ -1,11 +1,8 @@
-﻿using Identity.Bugeto.Models.Entities;
-using IdentityProject.Areas.Admin.Models.ViewModels;
+﻿using IdentityProject.Models.Entities;
 using IdentityProject.Models.ViewModels;
+using IdentityProject.Services;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
 
 namespace IdentityProject.Controllers
@@ -14,10 +11,13 @@ namespace IdentityProject.Controllers
     {
         private readonly UserManager<User> _userManager;
         private readonly SignInManager<User> _signInManager;
-        public AccountController(UserManager<User> userManager, SignInManager<User> signInManager)
+        private readonly EmailServices _emailServices;
+
+        public AccountController(UserManager<User> userManager, SignInManager<User> signInManager, EmailServices emailServices)
         {
             _userManager = userManager;
             _signInManager = signInManager;
+            _emailServices = emailServices;
         }
 
         public IActionResult Index()
@@ -127,6 +127,72 @@ namespace IdentityProject.Controllers
         }
 
         public IActionResult DisplayEmail()
+        {
+            return View();
+        }
+        [HttpGet]
+        public IActionResult ForgotPassword()
+        {
+            return View();
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> ForgotPassword(ForgotPasswordConfirmationViewModel viewModel)
+        {
+            if (!ModelState.IsValid)
+            {
+                return View("Error");
+            }
+            var user = await _userManager.FindByEmailAsync(viewModel.Email);
+            if (user == null || !await _userManager.IsEmailConfirmedAsync(user))
+            {
+                ViewBag.message = "ممکن است ایمیل معتبر نباشد یا اینکه ایمیل خود را تایید نکرده باشید";
+                return View("Error");
+            }
+
+            var token = await _userManager.GeneratePasswordResetTokenAsync(user);
+            string callBackUrl = Url.Action("ResetPassword", "Account",
+                new { UserId = user.Id, token = token }, protocol: Request.Scheme);
+
+            string body = $"برای تنظیم مجدد کلمه ی عبور کلیک کنید <a href='{callBackUrl}'>کلیک نمایید</a>";
+            await _emailServices.Excute(user.Email, body, "فعال سازی حساب کاربری");
+            return View();
+        }
+
+        [HttpGet]
+        public IActionResult ResetPassword(string UserId, string token)
+        {
+            return View(new ResetPasswordViewModel()
+            {
+                UserId = UserId,
+                Token = token
+            });
+        }
+        [HttpPost]
+        public async Task<IActionResult> ResetPassword(ResetPasswordViewModel viewModel)
+        {
+            if (!ModelState.IsValid)
+                return View(viewModel);
+            if (viewModel.Password != viewModel.ConfirmPassword)
+                return BadRequest();
+
+            var user = await _userManager.FindByIdAsync(viewModel.UserId);
+            if (user == null)
+                return BadRequest();
+
+            var result = await _userManager.ResetPasswordAsync(user, viewModel.Token, viewModel.Password);
+            if (result.Succeeded)
+            {
+                return RedirectToAction(nameof(ResetPasswordConfirmation));
+            }
+            else
+            {
+                ViewBag.Errors = result.Errors;
+                return View(viewModel);
+            }
+        }
+
+        public IActionResult ResetPasswordConfirmation()
         {
             return View();
         }
