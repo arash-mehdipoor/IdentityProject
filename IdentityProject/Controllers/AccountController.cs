@@ -12,10 +12,11 @@ namespace IdentityProject.Controllers
     public class AccountController : Controller
     {
         private readonly UserManager<User> _userManager;
-
-        public AccountController(UserManager<User> userManager)
+        private readonly SignInManager<User> _signInManager;
+        public AccountController(UserManager<User> userManager, SignInManager<User> signInManager)
         {
             _userManager = userManager;
+            _signInManager = signInManager;
         }
 
         public IActionResult Index()
@@ -23,6 +24,7 @@ namespace IdentityProject.Controllers
             return View();
         }
 
+        [HttpGet]
         public IActionResult Register()
         {
             return View();
@@ -51,6 +53,51 @@ namespace IdentityProject.Controllers
             }
             TempData["Message"] = message;
             return View(viewModel);
+        }
+
+
+        [HttpGet]
+        public IActionResult Login(string returnUrl = "/")
+        {
+            return View(new LoginViewModel()
+            {
+                ReturnUrl = returnUrl
+            });
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> Login(LoginViewModel viewModel)
+        {
+            if (!ModelState.IsValid)
+            {
+                return View(viewModel);
+            }
+
+            var user = await _userManager.FindByNameAsync(viewModel.UserName);
+            if (user != null)
+            {
+                var result = await _signInManager.PasswordSignInAsync(user, viewModel.Password, viewModel.RememberMe, true);
+                if (result.Succeeded)
+                    return LocalRedirect(viewModel.ReturnUrl);
+                if (result.RequiresTwoFactor)
+                {
+                    //
+                }
+                if (result.IsLockedOut)
+                {
+                    //
+                }
+            }
+            ModelState.AddModelError("", "Login Error");
+
+
+            return View(viewModel);
+        }
+
+        public IActionResult LogOut()
+        {
+            _signInManager.SignOutAsync();
+            return RedirectToAction("Index", "Home");
         }
     }
 }
