@@ -2,6 +2,7 @@
 using IdentityProject.Areas.Admin.Models.ViewModels;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Rendering;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -13,10 +14,12 @@ namespace IdentityProject.Areas.Admin.Controllers
     public class UsersController : Controller
     {
         private readonly UserManager<User> _userManager;
+        private readonly RoleManager<Role> _roleManager;
 
-        public UsersController(UserManager<User> userManager)
+        public UsersController(UserManager<User> userManager, RoleManager<Role> roleManager)
         {
             _userManager = userManager;
+            _roleManager = roleManager;
         }
 
         public IActionResult Index()
@@ -121,6 +124,47 @@ namespace IdentityProject.Areas.Admin.Controllers
                 TempData["DeleteUser"] = user.FirstName + " " + user.LastName + "حذف شد";
             }
             return RedirectToAction("Index", "Users", new { area = "Admin" });
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> AddUserRole(string Id)
+        {
+            var user = await _userManager.FindByIdAsync(Id);
+            var roles = _roleManager.Roles.Select(r => new SelectListItem()
+            {
+                Text = r.Name,
+                Value = r.Name
+            }).ToList();
+
+            var result = new List<SelectListItem>(roles);
+
+            return View(new AddUserRoleViewModel()
+            {
+                Id = Id,
+                Roles = result,
+                FullName = $"{user.FirstName} {user.LastName}",
+                Email = user.Email
+            });
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> AddUserRole(AddUserRoleViewModel viewModel)
+        {
+            var user = await _userManager.FindByIdAsync(viewModel.Id);
+            var result = await _userManager.AddToRoleAsync(user, viewModel.Role);
+            if (result.Succeeded)
+            { 
+                return RedirectToAction("UserRoles", "Users", new { Id = user.Id, area = "Admin" });
+            }
+            return View(viewModel);
+        }
+
+        public async Task<IActionResult> UserRoles(string Id)
+        {
+            var user = await _userManager.FindByIdAsync(Id);
+            var userRoles = await _userManager.GetRolesAsync(user);
+            ViewBag.UserInfo = $"{user.FirstName} {user.LastName}";
+            return View(userRoles);
         }
     }
 }

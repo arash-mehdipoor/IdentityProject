@@ -1,0 +1,25 @@
+﻿@model IList<string>
+@{
+    ViewData["Title"] = "UserRoles";
+ }
+
+<h1>User Roles</h1>
+<a asp-action="Index"> Rolse of : @ViewBag.UserInfo</a>
+<table class="table">
+    <thead>
+        <tr>
+            <td>Role Name</td>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var item in Model)
+        {
+        <tr>
+            <td>
+                @item
+            </td>
+        </tr>
+        }
+    </tbody>
+</table>
+
