@@ -1,7 +1,9 @@
+using Identity.Bugeto.Models.Entities;
 using IdentityProject.Data;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.HttpsPolicy;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -27,6 +29,19 @@ namespace IdentityProject
         {
             services.AddControllersWithViews();
             services.AddDbContext<DatabaseContext>(d => d.UseSqlServer(Configuration.GetConnectionString("IdentityCnn")));
+            services.AddIdentity<User, Role>()
+                .AddEntityFrameworkStores<DatabaseContext>()
+                .AddDefaultTokenProviders();
+
+            services.Configure<IdentityOptions>(option =>
+            {
+                option.Password.RequireDigit = false;
+                option.Password.RequireLowercase = false;
+                option.Password.RequireUppercase = false;
+                option.Password.RequireNonAlphanumeric = false;
+                option.Password.RequiredLength = 4;
+                //option.User.AllowedUserNameCharacters = "abcdefghijklmnopqrstuvwxyz"; 
+            });
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
