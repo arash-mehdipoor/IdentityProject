@@ -10,6 +10,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using System;
 
 namespace IdentityProject
 {
@@ -39,7 +40,18 @@ namespace IdentityProject
                 option.Password.RequireUppercase = false;
                 option.Password.RequireNonAlphanumeric = false;
                 option.Password.RequiredLength = 4;
+                option.User.RequireUniqueEmail = true;
+                option.Lockout.MaxFailedAccessAttempts = 3;
+                option.Lockout.DefaultLockoutTimeSpan = TimeSpan.FromMinutes(10);
                 //option.User.AllowedUserNameCharacters = "abcdefghijklmnopqrstuvwxyz"; 
+            });
+
+            services.ConfigureApplicationCookie(option =>
+            {
+                option.LoginPath = "/aacount/login";
+                option.AccessDeniedPath = "";
+                option.ExpireTimeSpan = TimeSpan.FromMinutes(10);
+                option.SlidingExpiration = true;
             });
         }
 
