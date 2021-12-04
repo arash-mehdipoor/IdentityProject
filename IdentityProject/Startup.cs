@@ -31,6 +31,7 @@ namespace IdentityProject
             services.AddIdentity<User, Role>()
                 .AddEntityFrameworkStores<DatabaseContext>()
                 .AddDefaultTokenProviders()
+                .AddPasswordValidator<PasswordValidator>()
                 .AddErrorDescriber<CustomIdentityError>();
             services.AddScoped<EmailServices>();
             services.Configure<IdentityOptions>(option =>
