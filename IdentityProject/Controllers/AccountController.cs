@@ -21,9 +21,21 @@ namespace IdentityProject.Controllers
             _emailServices = emailServices;
         }
 
-        public IActionResult Index()
+        [Authorize]
+        public async Task<IActionResult> Index()
         {
-            return View();
+            var user = await _userManager.FindByNameAsync(User.Identity.Name);
+            var userInfo = new MyAccountinfoViewModel()
+            {
+                FullName = $"{user.FirstName}  {user.LastName}",
+                UserName = user.UserName,
+                Email = user.Email,
+                EmailConfirmed = user.EmailConfirmed,
+                PhoneNumber = user.PhoneNumber,
+                PhoneNumberConfirmed = user.PhoneNumberConfirmed,
+                TwoFactorEnabled = user.TwoFactorEnabled
+            };
+            return View(userInfo);
         }
 
         [HttpGet]
@@ -83,7 +95,7 @@ namespace IdentityProject.Controllers
                     return LocalRedirect(viewModel.ReturnUrl);
                 if (result.RequiresTwoFactor)
                 {
-                    //
+                    return RedirectToAction("TwoFactorLogin", new { viewModel.UserName, viewModel.RememberMe });
                 }
                 if (result.IsLockedOut)
                 {
@@ -96,6 +108,63 @@ namespace IdentityProject.Controllers
             return View(viewModel);
         }
 
+        public async Task<IActionResult> TwoFactorLogin(string userName, bool rememberMe)
+        {
+            var user = await _userManager.FindByNameAsync(userName);
+            if (user == null)
+            {
+                return BadRequest();
+            }
+            var providers = await _userManager.GetValidTwoFactorProvidersAsync(user);
+            TwoFactorLoginViewModel twoFactorLogin = new TwoFactorLoginViewModel();
+            if (providers.Contains("Phone"))
+            {
+                var smsCode = await _userManager.GenerateTwoFactorTokenAsync(user, "Phone");
+                //SmsService.Send(user.PhoneNumber, smsCode);
+                twoFactorLogin.Provider = "Phone";
+                twoFactorLogin.IsPersistent = rememberMe;
+            }
+            else if (providers.Contains("Email"))
+            {
+                var emailCode = await _userManager.GenerateTwoFactorTokenAsync(user, "Email");
+                //EmailServices email = new EmailServices();
+                //await email.Excute(user.Email, $"Tow Factor Code {emailCode}", "Tow Factor Login");
+                twoFactorLogin.Provider = "Email";
+                twoFactorLogin.IsPersistent = rememberMe;
+            }
+            return View(twoFactorLogin);
+        }
+
+
+        [HttpPost]
+        public async Task<IActionResult> TwoFactorLogin(TwoFactorLoginViewModel viewModel)
+        {
+
+            if (!ModelState.IsValid)
+            {
+                return View(viewModel);
+            }
+
+            var user = await _signInManager.GetTwoFactorAuthenticationUserAsync();
+            if (user == null)
+            {
+                return BadRequest();
+            }
+            else
+            {
+              var result = await _signInManager.TwoFactorSignInAsync(viewModel.Provider, viewModel.Code, viewModel.IsPersistent, false);
+                if (result.Succeeded)
+                {
+                    return RedirectToAction("Index");
+                }
+                else if(result.IsLockedOut)
+                {
+                    ModelState.AddModelError("", "حساب کاربری شما قفل شده است");
+                    return View();
+                }
+            }
+            return View(viewModel);
+        }
         public IActionResult LogOut()
         {
             _signInManager.SignOutAsync();
@@ -259,5 +328,12 @@ namespace IdentityProject.Controllers
             return View();
         }
 
+        [Authorize]
+        public async Task<IActionResult> TwoFactorEnabled()
+        {
+            var user = await _userManager.FindByNameAsync(User.Identity.Name);
+            var result = await _userManager.SetTwoFactorEnabledAsync(user, !user.TwoFactorEnabled);
+            return RedirectToAction(nameof(Index));
+        }
     }
 }
