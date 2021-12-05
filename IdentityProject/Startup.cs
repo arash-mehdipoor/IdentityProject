@@ -3,6 +3,7 @@ using IdentityProject.Data;
 using IdentityProject.Helpers;
 using IdentityProject.Models.Entities;
 using IdentityProject.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Identity;
@@ -55,8 +56,21 @@ namespace IdentityProject
                 option.ExpireTimeSpan = TimeSpan.FromMinutes(10);
                 option.SlidingExpiration = true;
             });
-             
+
+            services.AddAuthorization(option =>
+            {
+                option.AddPolicy("Buyer", policy =>
+                {
+                    policy.RequireClaim("Buyer");
+                });
+                option.AddPolicy("cradit", policy =>
+                {
+                    policy.Requirements.Add(new UserCraditRequirment(10000));
+                });
+            });
+
             services.AddScoped<IUserClaimsPrincipalFactory<User>, AddUserClaims>();
+            services.AddSingleton<IAuthorizationRequirement, UserCraditRequirment>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
