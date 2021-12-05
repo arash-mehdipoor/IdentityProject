@@ -8,6 +8,7 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security.Claims;
 using System.Threading.Tasks;
 
 namespace IdentityProject.Areas.Admin.Controllers
@@ -71,7 +72,7 @@ namespace IdentityProject.Areas.Admin.Controllers
             {
                 var token = await _userManager.GenerateEmailConfirmationTokenAsync(newUser);
                 string callBackUrl = Url.Action("ConfirmEmail", "Account",
-                    new {UserId = newUser.Id, token = token }, protocol: Request.Scheme);
+                    new { UserId = newUser.Id, token = token }, protocol: Request.Scheme);
 
                 string body = $"جهت فعال سازی حساب کاربری <a href='{callBackUrl}'>کلیک نمایید</a>";
                 await _emailServices.Excute(newUser.Email, body, "فعال سازی حساب کاربری");
@@ -179,6 +180,30 @@ namespace IdentityProject.Areas.Admin.Controllers
             var userRoles = await _userManager.GetRolesAsync(user);
             ViewBag.UserInfo = $"{user.FirstName} {user.LastName}";
             return View(userRoles);
+        }
+        [HttpGet]
+        public IActionResult CreateClaims()
+        { 
+            return View();
+        }
+        [HttpPost]
+        public async Task<IActionResult> CreateClaims(string claimType, string claimValue)
+        {
+            var user = await _userManager.GetUserAsync(User);
+
+            Claim newClaim = new Claim(claimType, claimValue, ClaimValueTypes.String);
+             
+            var result = await _userManager.AddClaimAsync(user, newClaim);
+
+            if (result.Succeeded)
+            {
+                return RedirectToAction("Index");
+            }
+            foreach (var item in result.Errors)
+            {
+                ModelState.AddModelError("", item.Description);
+            }
+            return View();
         }
     }
 }

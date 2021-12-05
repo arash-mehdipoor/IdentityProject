@@ -31,6 +31,7 @@ namespace IdentityProject
             services.AddIdentity<User, Role>()
                 .AddEntityFrameworkStores<DatabaseContext>()
                 .AddDefaultTokenProviders()
+                .AddRoles<Role>()
                 .AddPasswordValidator<PasswordValidator>()
                 .AddErrorDescriber<CustomIdentityError>();
             services.AddScoped<EmailServices>();
@@ -54,6 +55,8 @@ namespace IdentityProject
                 option.ExpireTimeSpan = TimeSpan.FromMinutes(10);
                 option.SlidingExpiration = true;
             });
+             
+            services.AddScoped<IUserClaimsPrincipalFactory<User>, AddUserClaims>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
