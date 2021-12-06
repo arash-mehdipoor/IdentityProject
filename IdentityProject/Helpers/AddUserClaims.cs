@@ -19,6 +19,8 @@ namespace IdentityProject.Helpers
             var identity = await base.GenerateClaimsAsync(user);
             identity.AddClaim(new Claim("FullName", $"{user.FirstName} {user.LastName}", ClaimValueTypes.String));
             identity.AddClaim(new Claim("Cradit","11000", ClaimValueTypes.String));
+            identity.AddClaim(new Claim("IsBlogUser", "True", ClaimValueTypes.String));
+            
             return identity;
         }
     }

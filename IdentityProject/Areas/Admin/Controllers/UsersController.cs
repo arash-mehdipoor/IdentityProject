@@ -1,5 +1,4 @@
-﻿using Identity.Bugeto.Models.Entities;
-using IdentityProject.Areas.Admin.Models.ViewModels;
+﻿using IdentityProject.Areas.Admin.Models.ViewModels;
 using IdentityProject.Models.Entities;
 using IdentityProject.Services;
 using Microsoft.AspNetCore.Identity;

@@ -4,9 +4,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace Identity.Bugeto.Models.Entities
+namespace IdentityProject.Models.Entities
 {
-    public class Role: IdentityRole
+    public class Role : IdentityRole
     {
         public string Description { get; set; }
     }

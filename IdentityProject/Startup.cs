@@ -1,4 +1,3 @@
-using Identity.Bugeto.Models.Entities;
 using IdentityProject.Data;
 using IdentityProject.Helpers;
 using IdentityProject.Models.Entities;
@@ -67,10 +66,17 @@ namespace IdentityProject
                 {
                     policy.Requirements.Add(new UserCraditRequirment(10000));
                 });
+
+                option.AddPolicy("IsBlogUser", policy =>
+                {
+                    policy.Requirements.Add(new BlogRequireMent());
+                });
             });
 
             services.AddScoped<IUserClaimsPrincipalFactory<User>, AddUserClaims>();
-            services.AddSingleton<IAuthorizationRequirement, UserCraditRequirment>();
+            services.AddSingleton<IAuthorizationHandler, UserCraditRequirmentHander>();
+            services.AddSingleton<IAuthorizationHandler, BlogRequireMentHandler>();
+            
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

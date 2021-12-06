@@ -1,6 +1,4 @@
-﻿using Identity.Bugeto.Models.Entities;
-using IdentityProject.Models.Entities;
-using Microsoft.AspNetCore.Identity;
+﻿using IdentityProject.Models.Entities;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 
@@ -11,7 +9,7 @@ namespace IdentityProject.Data
         public DatabaseContext(DbContextOptions options) : base(options)
         {
         }
-
+        public DbSet<Blog> Blogs { get; set; }
         //protected override void OnModelCreating(ModelBuilder modelBuilder)
         //{
         //    modelBuilder.Entity<IdentityUserLogin<string>>().HasKey(p => new { p.ProviderKey, p.LoginProvider });
