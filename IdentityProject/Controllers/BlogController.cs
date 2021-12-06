@@ -9,7 +9,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace IdentityProject.Controllers
 {
-    //[Authorize(Roles = "Admin")]
+    [Authorize(Roles = "Admin")]
     public class BlogController : Controller
     {
         private readonly DatabaseContext _context;
